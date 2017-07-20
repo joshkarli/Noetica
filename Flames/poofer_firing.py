@@ -11,8 +11,15 @@
 # If it fails to correctly carry out the events in firingSequence, it will return 1. 
 # Successful firing will return 0.
 #
-########## Structure of pooferMappings
+########## Structure of disabledPoofers
+# disabledPoofers is expected to be a string list where each list element is the name of a poofer,
+#	according to the poofer naming scheme in firingSequence. This list will change in real time 
+#	according to the webGUI settings, but only the current disabledPoofers list needs to be passed
+# 	
+# Example of disabledPoofers:
+#	{NE,TT,BN}
 #
+########## Structure of pooferMappings#
 # pooferMappings is expected to be an object containing attributes with names equal to the poofer names, 
 # 	where each attribute value is a string of 3 digits that translate to its poofer's address on the poofer control boards.
 #	The first and second digits is the board number in hexadecimal, and the third digit is the channel on that board (there are 8 channels per board).
@@ -62,14 +69,14 @@
 # {ABxxxx&ABxxxx,RRxxxx,ABxxxx,etc}
 #
 # where: 
-#	A is the position of the poofer, which can be T, B, N, S, E, W
+#	A is the position of the poofer's plink, which can be T, B, N, S, E, W
 # 	B is the position of the poofer on its plink, it can be T, B, N, S, E, W
 # 	RR indicates that there should be a rest for time xxxxx
 # 	xxxx is the time duration of the firing, in milliseconds (max value is 3500, as defined by poofer control board firmware)
 # 	& separates firing events that should happen in parallel
 # 	, separates firing events that should happen in sequence 
 #
-# Therefore each string element is a firing step, and one step can contain several poofers to be fired in parallel.
+# Therefore each list element is a firing step, and one step can contain several poofers to be fired in parallel.
 # Note that xxxx must always be a 4 digit number, so there must be leading zeros for millisecond values < 1000, i.e. 0100
 #
 # Example: 
@@ -151,7 +158,6 @@ pooferMappings.BN="042"
 pooferMappings.BE="043"
 pooferMappings.BS="044"
 pooferMappings.BW="045"
-return()
 ##########
 
 
@@ -285,10 +291,10 @@ def generateBangCommandList(firingSequence):
 	try:
 	
 		#steps: 
-		#check to see if electronic killswitch is enabled, if so then do nothing
 		#iterating through firingSequence, for each step:
 		#	generate eventsList
 		#	for each in eventsList:
+		#		check to see if electronic killswitch is enabled, if so then do nothing and exit the script
 		#		each item becomes a new item in bangCommandList:
 		#		bangCommandList[index]="b"+(string: translate alphas to address via pooferMappings)+"t"+str(digits)
 		#		make sure that there is a 1:1 match between each step in firingSequence and each step in bangCommandList
@@ -326,7 +332,7 @@ def firePoofers(bangCommandList):
 
 	try:
 		#steps:
-		#check to see if electronic killswitch is enabled, if so then do nothing
+		#check to see if electronic killswitch is enabled, if so then do nothing and exit the script
 		#create a separate thread? or have the parent script fire this entire script off in a separate thread?
 		#start an event timer? or use thread sleeps to keep track of time?
 		#according to bangCommandList time schedule, carry out for each firing event: 
